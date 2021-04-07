@@ -73,14 +73,14 @@ jobs:
       - run: tar -czf archive.tar.gz dist
       - run: jfrog rt u "*.gz" testnpm
 
-###      - run: npm publish             ## Publish Package to Artifactory
+###      - run: npm publish                       ## Publish Package to Artifactory
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
             name: package
             path: "*.tgz"
 
-  sonarcloud:                           ## SonarCloud Analysis
+  sonarcloud:                                     ## SonarCloud Analysis
     needs: [build]
     runs-on: ubuntu-latest
     steps:
