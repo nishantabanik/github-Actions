@@ -21,7 +21,7 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2                 ## Code Checkout
     - name: Bump version and push tag
       id: tag_version
       uses: mathieudutour/github-tag-action@v5.3
@@ -34,7 +34,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
     - run: npm run build --if-present
-    - name: Get package version
+    - name: Get package version                 ## Semantic Version
       id: vars
       shell: bash
       run: |
@@ -54,7 +54,7 @@ jobs:
     - run: npm test
 
   package:
-    needs: [build]
+    needs: [build]                                ## Code Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -69,18 +69,18 @@ jobs:
       - name: Installing Jfrog
         uses: jfrog/setup-jfrog-cli@v1
       - run: jfrog --version
-      - run: jfrog rt c ci-userdetails --access-token ${{ secrets.JF_ARTIFACTORY_TOKEN }} --url ${{ secrets.JF_ARTIFACTORY_URL }} --interactive=false
+      - run: jfrog rt c ci-userdetails --access-token ${{ secrets.ARTIFACTORY_TOKEN }} --url ${{ secrets.ARTIFACTORY_URL }} --interactive=false
       - run: tar -czf archive.tar.gz dist
       - run: jfrog rt u "*.gz" testnpm
 
-###      - run: npm publish
+###      - run: npm publish             ## Publish Package to Artifactory
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
             name: package
             path: "*.tgz"
 
-  sonarcloud:
+  sonarcloud:                           ## SonarCloud Analysis
     needs: [build]
     runs-on: ubuntu-latest
     steps:
