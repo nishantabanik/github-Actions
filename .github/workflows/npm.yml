@@ -24,6 +24,10 @@ jobs:
     - uses: actions/checkout@v2                 ## Code Checkout
     - name: Bump version and push tag
       id: tag_version
+      # uses: zwaldowski/semver-release-action@v1
+      # with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+
       uses: mathieudutour/github-tag-action@v5.3
       with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -49,6 +53,18 @@ jobs:
           message: "Built ${{ steps.vars.outputs.sha_short }}"
           ref: "release/v${{ steps.vars.outputs.pkg_version }}"
           tag: "v${{ steps.vars.outputs.pkg_version }}"
+
+    # - run: echo "${{ steps.next_version.outputs.version }}"
+    # - run: |
+    #     git add .
+    #     git commit -m "Bump version"
+    #     git push
+    #     echo ::set-output name=sha::$(git rev-parse HEAD)
+    # - uses: zwaldowski/semver-release-action@v1
+    #   with:
+    #     github_token: ${{ secrets.GITHUB_TOKEN }}
+    #     sha: ${{ steps.git_commit.outputs.sha }}
+    
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Provided by Github Actions
     - run: npm test
