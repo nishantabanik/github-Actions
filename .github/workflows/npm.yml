@@ -23,6 +23,23 @@ jobs:
     steps:
     - uses: actions/checkout@v2                 ## Code Checkout
     - name: Bump version and push tag
+      id: next_version
+      uses: zwaldowski/semver-release-action@v1
+      with:
+          dry_run: true
+          bump: ${{ "v" }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+    # Do something to modify the repo using `${{ steps.next_version.outputs.version }}`.
+    - run: echo "${{ steps.next_version.outputs.version }}"
+    - run: |
+        git add .
+        git commit -m "Bump version"
+        git push
+        echo ::set-output name=sha::$(git rev-parse HEAD)
+    - uses: zwaldowski/semver-release-action@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        sha: ${{ steps.git_commit.outputs.sha }}
       # id: tag_version
       # uses: zwaldowski/semver-release-action@v1
       # with:
@@ -41,23 +58,7 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - name: Get package version                 ## Semantic Version
-      id: next_version
-      uses: zwaldowski/semver-release-action@v1
-      with:
-          dry_run: true
-          bump: ${{ "v" }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-    # Do something to modify the repo using `${{ steps.next_version.outputs.version }}`.
-    - run: echo "${{ steps.next_version.outputs.version }}"
-    - run: |
-        git add .
-        git commit -m "Bump version"
-        git push
-        echo ::set-output name=sha::$(git rev-parse HEAD)
-    - uses: zwaldowski/semver-release-action@v1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        sha: ${{ steps.git_commit.outputs.sha }}
+
 
       # id: vars
       # shell: bash
