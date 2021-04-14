@@ -87,7 +87,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Provided by Github Actions
     - run: npm test
     - run: npm run testWithCoverage
-    - run: ls -lrt coverage/
+    - run: cp coverage/clover.xml .
+    - run: ls
     - run: pwd
 
   package:
