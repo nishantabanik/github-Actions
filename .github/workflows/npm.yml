@@ -12,37 +12,36 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest                          # Build jobs running on Ubuntu
 
     strategy:
       matrix:
-        node-version: [15.x]
+        node-version: [15.x]                        # Which node version
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v2                 ## Code Checkout
-    - name: Bump version and push tag
+    - uses: actions/checkout@v2                           ## Code Checkout
+    - name: Bump version and push tag                     ## Name
       id: tag_version
       # uses: zwaldowski/semver-release-action@v1
       # with:
       #     github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      uses: mathieudutour/github-tag-action@v5.3
+      uses: mathieudutour/github-tag-action@v5.3          ## GitHub Actions for SemVer
       with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
 
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js ${{ matrix.node-version }}        ## GitHub Actions for NodeJS to run NPM
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: ${{ matrix.node-version }}          ## NPM version
 
-    - run: npm install
+    - run: npm install                          ## Build jobs section.
     - run: npm run build --if-present
     - name: Get package version                 ## Semantic Version
       id: vars
-      shell: bash
+      shell: bash                               ## Setting up the tagging, branch, package version
       run: |
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
@@ -64,7 +63,7 @@ jobs:
     #     git_sha: "${{ steps.vars.outputs.git_sha }}"
 
     - name: Add & Commit
-      uses: EndBug/add-and-commit@v4.2.0
+      uses: EndBug/add-and-commit@v4.2.0        ## GitHub Actions for Adding & Commit
       with:
           add: "dist"
           force: true
@@ -84,7 +83,7 @@ jobs:
     #     sha: ${{ steps.git_commit.outputs.sha }}
     
       env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Provided by Github Actions
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # Env variable for build section.
     - run: npm test
     - run: npm run testWithCoverage
     - run: cp coverage/clover.xml .
@@ -92,7 +91,7 @@ jobs:
     - run: pwd
 
   package:
-    needs: [build]                                ## Code Build
+    needs: [build]                                ## Code for Build Packaging
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -104,7 +103,7 @@ jobs:
       - run: npm version prerelease --preid=ci-$GITHUB_RUN_ID --no-git-tag-version
       - run: npm pack
 
-      - name: Installing Jfrog
+      - name: Installing Jfrog                    ## Artifactory section starts
         uses: jfrog/setup-jfrog-cli@v1
       - run: jfrog --version
       - run: jfrog rt c ci-userdetails --access-token ${{ secrets.ARTIFACTORY_TOKEN }} --url ${{ secrets.ARTIFACTORY_URL }} --interactive=false
