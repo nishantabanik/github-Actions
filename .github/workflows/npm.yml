@@ -87,7 +87,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Provided by Github Actions
     - run: npm test
     - run: npm run testWithCoverage
-    - run: ls
+    - run: ls -lrt coverage/
     - run: pwd
 
   package:
