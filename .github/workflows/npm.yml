@@ -47,6 +47,12 @@ jobs:
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo "::set-output name=pkg_version::$(node -e "console.log(require('./package.json').version);")"
+          new_version=${{ steps.vars.outputs.new_version }}
+          new_tag=${{ steps.vars.outputs.new_tag }}
+          echo "New version: ${new_version}"
+          echo "New tag: ${new_tag}"
+          echo "::set-output name=new_tag::${new_tag}"
+          echo "::set-output name=new_version::${new_version}"
 
     # - run: |
     #     new_version=${{ steps.vars.outputs.new_version }}
@@ -72,6 +78,8 @@ jobs:
           message: "Built ${{ steps.vars.outputs.sha_short }}"
           ref: "release/v${{ steps.vars.outputs.pkg_version }}"
           tag: "v${{ steps.vars.outputs.pkg_version }}"
+          new_version: "${{ steps.vars.outputs.new_version }}"
+          new_tag: "${{ steps.vars.outputs.new_tag }}"
 
     # - run: echo "${{ steps.next_version.outputs.version }}"
     # - run: |
