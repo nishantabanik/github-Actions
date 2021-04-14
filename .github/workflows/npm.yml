@@ -44,11 +44,11 @@ jobs:
 
     - id: next_version
       uses: zwaldowski/semver-release-action@v1
-        with:
+      with:
           dry_run: true
-          bump: ${{ … }}
+          bump: ${{ "v" }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-    // Do something to modify the repo using `${{ steps.next_version.outputs.version }}`.
+    # // Do something to modify the repo using `${{ steps.next_version.outputs.version }}`.
     - run: echo "${{ steps.next_version.outputs.version }}"
     - run: |
         git add .
