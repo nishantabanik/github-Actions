@@ -26,8 +26,8 @@ jobs:
       id: next_version
       uses: zwaldowski/semver-release-action@v1
       with:
-        dry_run: true
-        bump: ${{ "v" }}
+        # dry_run: true
+        # bump: ${{ "v" }}
         github_token: ${{ secrets.GITHUB_TOKEN }}
     # Do something to modify the repo using `${{ steps.next_version.outputs.version }}`.
     - run: echo "${{ steps.next_version.outputs.version }}"
