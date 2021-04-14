@@ -9,6 +9,7 @@
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
     "test": "jest",
+    "testWithCoverage": "jest --coverage",
     "pre-checkin": "npm run format && npm run build && npm test"
   },
   "repository": {
@@ -40,6 +41,12 @@
     "jest-circus": "^24.7.1",
     "prettier": "^1.19.1",
     "ts-jest": "^24.3.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "jest-sonar-reporter": "^2.0.0",
+    "lcov-parse": "^1.0.0"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "testResultsProcessor": "jest-sonar-reporter"
   }
 }

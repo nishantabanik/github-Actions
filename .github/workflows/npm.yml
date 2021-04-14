@@ -23,31 +23,14 @@ jobs:
     steps:
     - uses: actions/checkout@v2                 ## Code Checkout
     - name: Bump version and push tag
-      id: next_version
-      uses: zwaldowski/semver-release-action@v1
-      with:
-        # dry_run: true
-        # bump: ${{ "v" }}
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-    # Do something to modify the repo using `${{ steps.next_version.outputs.version }}`.
-    - run: echo "${{ steps.next_version.outputs.version }}"
-    - run: |
-        git add .
-        git commit -m "Bump version"
-        git push
-        echo ::set-output name=sha::$(git rev-parse HEAD)
-    - uses: zwaldowski/semver-release-action@v1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        sha: ${{ steps.git_commit.outputs.sha }}
-      # id: tag_version
+      id: tag_version
       # uses: zwaldowski/semver-release-action@v1
       # with:
       #     github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      # uses: mathieudutour/github-tag-action@v5.3
-      # with:
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      uses: mathieudutour/github-tag-action@v5.3
+      with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
 
     - name: Use Node.js ${{ matrix.node-version }}
@@ -58,32 +41,36 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - name: Get package version                 ## Semantic Version
+      id: vars
+      shell: bash
+      run: |
+          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          echo "::set-output name=pkg_version::$(node -e "console.log(require('./package.json').version);")"
+    # - run: |
+    #     new_version=${{ steps.vars.outputs.new_version }}
+    #     new_tag=${{ steps.vars.outputs.new_tag }}
+    #     echo "New version: ${new_version}"
+    #     echo "New tag: ${new_tag}"
+    #     echo "::set-output name=new_tag::${new_tag}"
+    #     echo "::set-output name=new_version::${new_version}"
+    #     echo "::set-output name=branch::$branch"
+    #     echo "::set-output name=git_sha::$git_sha"
+    #     echo Branch Name: $branch
+    # outputs:
+    #     new_tag: ${{ steps.vars.outputs.new_tag }}
+    #     new_version: ${{ steps.vars.outputs.new_version }}
+    #     github_branch: "${{ steps.vars.outputs.branch }}"
+    #     git_sha: "${{ steps.vars.outputs.git_sha }}"
 
-
-      # id: vars
-      # shell: bash
-      # run: |
-      #     echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-      #     echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-      #     echo "::set-output name=pkg_version::$(node -e "console.log(require('./package.json').version);")"
-      #     new_version=${{ steps.vars.outputs.new_version }}
-      #     new_tag=${{ steps.vars.outputs.new_tag }}
-      #     echo "New version: ${new_version}"
-      #     echo "New tag: ${new_tag}"
-      #     echo "::set-output name=new_tag::${new_tag}"
-      #     echo "::set-output name=new_version::${new_version}"
-
-
-    # - name: Add & Commit
-    #   uses: EndBug/add-and-commit@v4.2.0
-    #   with:
-    #       add: "dist"
-    #       force: true
-    #       message: "Built ${{ steps.vars.outputs.sha_short }}"
-    #       ref: "release/v${{ steps.vars.outputs.pkg_version }}"
-    #       tag: "v${{ steps.vars.outputs.pkg_version }}"
-    #       new_version: "${{ steps.vars.outputs.new_version }}"
-    #       new_tag: "${{ steps.vars.outputs.new_tag }}"
+    - name: Add & Commit
+      uses: EndBug/add-and-commit@v4.2.0
+      with:
+          add: "dist"
+          force: true
+          message: "Built ${{ steps.vars.outputs.sha_short }}"
+          ref: "release/v${{ steps.vars.outputs.pkg_version }}"
+          tag: "v${{ steps.vars.outputs.pkg_version }}"
 
     # - run: echo "${{ steps.next_version.outputs.version }}"
     # - run: |
@@ -99,6 +86,8 @@ jobs:
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Provided by Github Actions
     - run: npm test
+    - run: npm run testWithCoverage
+    - run: ls -lrt /
 
   package:
     needs: [build]                                ## Code Build
