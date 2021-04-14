@@ -61,14 +61,14 @@ jobs:
         echo "::set-output name=git_sha::$git_sha"
         echo Branch Name: $branch
     outputs:
-      new_tag: ${{ steps.var.outputs.new_tag }}
-      new_version: ${{ steps.var.outputs.new_version }}
-      github_branch: "${{ steps.var.outputs.branch }}"
-      git_sha: "${{ steps.var.outputs.git_sha }}"
+        new_tag: ${{ steps.var.outputs.new_tag }}
+        new_version: ${{ steps.var.outputs.new_version }}
+        github_branch: "${{ steps.var.outputs.branch }}"
+        git_sha: "${{ steps.var.outputs.git_sha }}"
 
-    - name: Add & Commit
-      uses: EndBug/add-and-commit@v4.2.0
-      with:
+    # - name: Add & Commit
+      - uses: EndBug/add-and-commit@v4.2.0
+        with:
           add: "dist"
           force: true
           message: "Built ${{ steps.vars.outputs.sha_short }}"
