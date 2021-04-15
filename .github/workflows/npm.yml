@@ -1,90 +1,64 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Node.js CI                                    # Name
+name: Node.js CI
 
 on:                                                 
-  push:                                             # On push to main
+  push:
     branches: 
       - main
   pull_request:
-    types: [opened, synchronize, reopened]          # if any pull request, the types of pull requests
+    types: [opened, synchronize, reopened]
 
 jobs:
   build:
-    runs-on: ubuntu-latest                          # Build jobs running on Ubuntu
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [15.x]                        # Which node version
+        node-version: [15.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v2                           ## Code Checkout
-    - name: Bump version and push tag                     ## Name
+    - uses: actions/checkout@v2
+    - name: Bump version and push tag
       id: tag_version
       # uses: zwaldowski/semver-release-action@v1
       # with:
       #     github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      uses: mathieudutour/github-tag-action@v5.3          ## GitHub Actions for SemVer
+      uses: mathieudutour/github-tag-action@v5.3
       with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
 
-    - name: Use Node.js ${{ matrix.node-version }}        ## GitHub Actions for NodeJS to run NPM
+    - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}          ## NPM version
+        node-version: ${{ matrix.node-version }}
 
-    - run: npm install                          ## Build jobs section.
+    - run: npm install
     - run: npm run build --if-present
-    - name: Get package version                 ## Semantic Version
+    - name: Get package version
       id: vars
-      shell: bash                               ## Setting up the tagging, branch, package version
+      shell: bash
       run: |
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
           echo "::set-output name=pkg_version::$(node -e "console.log(require('./package.json').version);")"
-    # - run: |
-    #     new_version=${{ steps.vars.outputs.new_version }}
-    #     new_tag=${{ steps.vars.outputs.new_tag }}
-    #     echo "New version: ${new_version}"
-    #     echo "New tag: ${new_tag}"
-    #     echo "::set-output name=new_tag::${new_tag}"
-    #     echo "::set-output name=new_version::${new_version}"
-    #     echo "::set-output name=branch::$branch"
-    #     echo "::set-output name=git_sha::$git_sha"
-    #     echo Branch Name: $branch
-    # outputs:
-    #     new_tag: ${{ steps.vars.outputs.new_tag }}
-    #     new_version: ${{ steps.vars.outputs.new_version }}
-    #     github_branch: "${{ steps.vars.outputs.branch }}"
-    #     git_sha: "${{ steps.vars.outputs.git_sha }}"
 
 
     - name: Add & Commit
-      uses: EndBug/add-and-commit@v4.2.0        ## GitHub Actions for Adding & Commit
+      uses: EndBug/add-and-commit@v4.2.0
       with:
           add: "dist"
           force: true
           message: "Built ${{ steps.vars.outputs.sha_short }}"
           ref: "release/v${{ steps.vars.outputs.pkg_version }}"
           tag: "v${{ steps.vars.outputs.pkg_version }}"
-
-    # - run: echo "${{ steps.next_version.outputs.version }}"
-    # - run: |
-    #     git add .
-    #     git commit -m "Bump version"
-    #     git push
-    #     echo ::set-output name=sha::$(git rev-parse HEAD)
-    # - uses: zwaldowski/semver-release-action@v1
-    #   with:
-    #     github_token: ${{ secrets.GITHUB_TOKEN }}
-    #     sha: ${{ steps.git_commit.outputs.sha }}
-    
+  
       env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # Env variable for build section.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - run: npm test
     - run: npm run testWithCoverage
     - run: cp coverage/clover.xml .
@@ -92,7 +66,7 @@ jobs:
     - run: pwd
 
   package:
-    needs: [build]                                ## Code for Build Packaging
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -104,30 +78,29 @@ jobs:
       - run: npm version prerelease --preid=ci-$GITHUB_RUN_ID --no-git-tag-version
       - run: npm pack
 
-      - name: Installing Jfrog                    ## Artifactory section starts
+      - name: Installing Jfrog
         uses: jfrog/setup-jfrog-cli@v1
       - run: jfrog --version
       - run: jfrog rt c ci-userdetails --access-token ${{ secrets.ARTIFACTORY_TOKEN }} --url ${{ secrets.ARTIFACTORY_URL }} --interactive=false
       - run: tar -czf npm.tar.gz dist
       - run: jfrog rt u "*.gz" testnpm
 
-###      - run: npm publish                       ## Publish Package to Artifactory
+###      - run: npm publish
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
             name: package
             path: "*.tgz"
 
-  sonarcloud:                                     ## SonarCloud Analysis
+  sonarcloud:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
       with:
-        # Disabling shallow clone is recommended for improving relevancy of reporting
         fetch-depth: 0
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
